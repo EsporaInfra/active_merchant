@@ -544,6 +544,13 @@ migs:
   advanced_login: activemerchant
   advanced_password: test12345
 
+# Working credentials, no need to replace
+mit:
+  id_comercio: '35'
+  user: 0002HA98HS
+  apikey: 8SJI9OK98BV12VD3
+  key_session: CB0DC4887DD1D5CEA205E66EE934E430
+
 modern_payments:
   login: login
   password: password
