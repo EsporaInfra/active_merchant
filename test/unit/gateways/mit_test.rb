@@ -11,7 +11,7 @@ class MitTest < Test::Unit::TestCase
     @gateway = MitGateway.new(@credentials)
 
     @credit_card = ActiveMerchant::Billing::CreditCard.new(
-      number: '4242424242424242',
+      number: '4000000000000002',
       verification_value: '183',
       month: '01',
       year: '2024',

@@ -11,7 +11,7 @@ module ActiveMerchant #:nodoc:
 
       self.supported_countries = ['MX']
       self.default_currency = 'MXN'
-      # TODO: preguntarle a MIT cuales son los tipos de tarjetas soportados
+
       self.supported_cardtypes = %i[visa master]
 
       self.homepage_url = 'http://www.centrodepagos.com.mx/'
