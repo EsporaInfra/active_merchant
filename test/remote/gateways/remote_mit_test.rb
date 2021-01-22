@@ -12,8 +12,8 @@ class RemoteMitTest < Test::Unit::TestCase
       verification_value: '188',
       month: '01',
       year: '2024',
-      first_name: 'Mario F.',
-      last_name: 'Moreno Reyes'
+      first_name: 'Pedro',
+      last_name: 'Flores Valdes'
     )
 
     @declined_card = ActiveMerchant::Billing::CreditCard.new(

@@ -15,8 +15,8 @@ class MitTest < Test::Unit::TestCase
       verification_value: '183',
       month: '01',
       year: '2024',
-      first_name: 'Mario F.',
-      last_name: 'Moreno Reyes'
+      first_name: 'Pedro',
+      last_name: 'Flores Valdes'
     )
 
     @amount = 100
