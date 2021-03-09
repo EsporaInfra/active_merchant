@@ -546,9 +546,9 @@ migs:
 
 # Working credentials, no need to replace
 mit:
-  id_comercio: '35'
-  user: 0002HA98HS
-  apikey: 8SJI9OK98BV12VD3
+  id_comercio: '147'
+  user: IVCA33721
+  apikey: IGECPJ0QOJJCEHUI
   key_session: CB0DC4887DD1D5CEA205E66EE934E430
 
 modern_payments:

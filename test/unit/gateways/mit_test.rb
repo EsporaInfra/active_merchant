@@ -3,9 +3,9 @@ require 'test_helper'
 class MitTest < Test::Unit::TestCase
   def setup
     @credentials = {
-      id_comercio: '35',
-      user: '0002HA98HS',
-      apikey: '8SJI9OK98BV12VD3',
+      id_comercio: '147',
+      user: 'IVCA33721',
+      apikey: 'IGECPJ0QOJJCEHUI',
       key_session: 'CB0DC4887DD1D5CEA205E66EE934E430'
     }
     @gateway = MitGateway.new(@credentials)
@@ -33,13 +33,13 @@ class MitTest < Test::Unit::TestCase
     @gateway.expects(:ssl_post).returns(successful_authorize_response)
     auth_response = @gateway.authorize(@amount, @credit_card, @options)
     assert_success auth_response
-    assert_equal ' -0C- ', auth_response.message
+    assert_equal 'approved', auth_response.message
 
     @gateway.expects(:ssl_post).returns(successful_capture_response)
     response = @gateway.capture(@amount, @credit_card, @options)
     assert_success response
 
-    assert_equal ' -0C- ', response.message
+    assert_equal 'approved', response.message
     assert response.test?
   end
 
@@ -47,7 +47,7 @@ class MitTest < Test::Unit::TestCase
     @gateway.expects(:ssl_post).returns(failed_capture_response)
     response = @gateway.capture(@amount, @credit_card, @options)
 
-    assert_not_equal ' -0C- ', response.message
+    assert_not_equal 'approved', response.message
     assert response.test?
   end
 
@@ -56,7 +56,7 @@ class MitTest < Test::Unit::TestCase
     response = @gateway.authorize(@amount, @credit_card, @options)
     assert_success response
 
-    assert_equal ' -0C- ', response.message
+    assert_equal 'approved', response.message
     assert response.test?
   end
 
@@ -64,7 +64,7 @@ class MitTest < Test::Unit::TestCase
     @gateway.expects(:ssl_post).returns(failed_authorize_response)
     response = @gateway.authorize(@amount, @credit_card, @options)
 
-    assert_not_equal ' -0C- ', response.message
+    assert_not_equal 'approved', response.message
     assert response.test?
   end
 
@@ -73,7 +73,7 @@ class MitTest < Test::Unit::TestCase
     response = @gateway.capture(@amount, @credit_card, @options)
     assert_success response
 
-    assert_equal ' -0C- ', response.message
+    assert_equal 'approved', response.message
     assert response.test?
   end
 
@@ -81,7 +81,7 @@ class MitTest < Test::Unit::TestCase
     @gateway.expects(:ssl_post).returns(failed_capture_response)
     response = @gateway.capture(@amount, @credit_card, @options)
 
-    assert_not_equal ' -0C- ', response.message
+    assert_not_equal 'approved', response.message
     assert response.test?
   end
 
@@ -90,7 +90,7 @@ class MitTest < Test::Unit::TestCase
     response = @gateway.refund(@amount, 'testauthorization', @options)
     assert_success response
 
-    assert_equal ' -0C- ', response.message
+    assert_equal 'approved', response.message
     assert response.test?
   end
 
@@ -98,7 +98,7 @@ class MitTest < Test::Unit::TestCase
     @gateway.expects(:ssl_post).returns(failed_refund_response)
     response = @gateway.refund(@amount, 'authorizationtest', @options)
     assert_failure response
-    assert_not_equal ' -0C- ', response.message
+    assert_not_equal 'approved', response.message
   end
 
   private

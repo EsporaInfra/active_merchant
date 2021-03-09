@@ -6,7 +6,7 @@ require 'base64'
 module ActiveMerchant #:nodoc:
   module Billing #:nodoc:
     class MitGateway < Gateway
-      self.test_url = 'https://dev6.mitec.com.mx/ModuloUtilWS/activeCDP.htm'
+      self.test_url = 'https://wpy.mitec.com.mx/ModuloUtilWS/activeCDP.htm'
       self.live_url = 'https://wpy.mitec.com.mx/ModuloUtilWS/activeCDP.htm'
 
       self.supported_countries = ['MX']
@@ -225,7 +225,7 @@ module ActiveMerchant #:nodoc:
       end
 
       def message_from(response)
-        response['message']
+        response['response']
       end
 
       def authorization_from(response)
