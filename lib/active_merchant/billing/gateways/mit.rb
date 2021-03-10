@@ -93,8 +93,6 @@ module ActiveMerchant #:nodoc:
         add_invoice(post, money, options)
         # Payments contains the card information
         add_payment(post, payment)
-        # Address not required
-        add_address(post, payment, options)
         add_customer_data(post, options)
         post[:key_session] = self.options[:key_session]
 
