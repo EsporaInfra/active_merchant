@@ -84,9 +84,6 @@ module ActiveMerchant #:nodoc:
       end
 
       def authorize(money, payment, options = {})
-        puts('---------------------------------------------')
-        puts('Authorization')
-        puts('---------------------------------------------')
         post = {
           operation: 'Authorize',
           id_comercio: self.options[:id_comercio],
@@ -110,9 +107,6 @@ module ActiveMerchant #:nodoc:
       end
 
       def capture(money, authorization, options = {})
-        puts('---------------------------------------------')
-        puts('Capture')
-        puts('---------------------------------------------')
         post = {
           operation: 'Capture',
           id_comercio: self.options[:id_comercio],
@@ -132,9 +126,6 @@ module ActiveMerchant #:nodoc:
       end
 
       def refund(money, authorization, options = {})
-        puts('---------------------------------------------')
-        puts('Refund')
-        puts('---------------------------------------------')
         post = {
           operation: 'Refund',
           id_comercio: self.options[:id_comercio],
@@ -154,14 +145,6 @@ module ActiveMerchant #:nodoc:
         commit('refund', final_post)
       end
 
-      # Currently unsupported
-      # def void(authorization, options={})
-      #   puts('---------------------------------------------')
-      #   puts('Void')
-      #   puts('---------------------------------------------')
-      #   refund(options["money"], authorization, options)
-      # end
-
       def verify(credit_card, options = {})
         MultiResponse.run(:use_first_response) do |r|
           r.process { authorize(100, credit_card, options) }
@@ -179,8 +162,6 @@ module ActiveMerchant #:nodoc:
         post[:email] = options[:email] || 'nadie@mit.test'
       end
 
-      def add_address(post, creditcard, options); end
-
       def add_invoice(post, money, options)
         post[:amount] = amount(money)
         post[:currency] = (options[:currency] || currency(money))
@@ -197,16 +178,11 @@ module ActiveMerchant #:nodoc:
         post[:name_client] = [payment.first_name, payment.last_name].join(' ')
       end
 
-      def parse(body)
-        {}
-      end
-
       def commit(action, parameters)
         url = (test? ? test_url : live_url)
         raw_response = ssl_post(url, parameters, { 'Content-type' => 'text/plain' })
         puts(raw_response)
         response = JSON.parse(decrypt(raw_response, self.options[:key_session]))
-        puts(response)
 
         Response.new(
           success_from(response),

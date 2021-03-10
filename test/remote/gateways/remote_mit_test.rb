@@ -41,8 +41,6 @@ class RemoteMitTest < Test::Unit::TestCase
   end
 
   def test_successful_purchase
-    puts('======================================================================================')
-    puts('PURCHASE')
     # ###############################################################
     # create unique id based on timestamp for testing purposes
     # Each order / transaction passed to the gateway must be unique
@@ -56,16 +54,12 @@ class RemoteMitTest < Test::Unit::TestCase
   end
 
   def test_failed_purchase
-    puts('======================================================================================')
-    puts('FAILED PURCHASE')
     response = @gateway.purchase(@amount_fail, @declined_card, @options)
     assert_failure response
     assert_not_equal 'approved', response.message
   end
 
   def test_successful_authorize_and_capture
-    puts('======================================================================================')
-    puts('AUTHORIZE CAPTURE')
     # ###############################################################
     # create unique id based on timestamp for testing purposes
     # Each order / transaction passed to the gateway must be unique
@@ -82,24 +76,18 @@ class RemoteMitTest < Test::Unit::TestCase
   end
 
   def test_failed_authorize
-    puts('======================================================================================')
-    puts('FAILED AUTHORIZE')
     response = @gateway.authorize(@amount_fail, @declined_card, @options)
     assert_failure response
     assert_not_equal 'approved', response.message
   end
 
   def test_failed_capture
-    puts('======================================================================================')
-    puts('FAILED CAPTURE')
     response = @gateway.capture(@amount_fail, 'requiredauth', @options)
     assert_failure response
     assert_not_equal 'approved', response.message
   end
 
   def test_successful_refund
-    puts('======================================================================================')
-    puts('REFUND')
     # ###############################################################
     # create unique id based on timestamp for testing purposes
     # Each order / transaction passed to the gateway must be unique
@@ -117,8 +105,6 @@ class RemoteMitTest < Test::Unit::TestCase
   end
 
   def test_failed_refund
-    puts('======================================================================================')
-    puts('FAILED REFUND')
     # authorization is required
     response = @gateway.refund(@amount, 'invalidauth', @options)
     assert_failure response
