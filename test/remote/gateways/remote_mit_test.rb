@@ -8,7 +8,7 @@ class RemoteMitTest < Test::Unit::TestCase
     @amount_fail = 11165
 
     @credit_card = ActiveMerchant::Billing::CreditCard.new(
-      number: '4242424242424242',
+      number: '5555555555555557',
       verification_value: '261',
       month: '09',
       year: '2025',
@@ -17,7 +17,7 @@ class RemoteMitTest < Test::Unit::TestCase
     )
 
     @declined_card = ActiveMerchant::Billing::CreditCard.new(
-      number: '4242424242424242',
+      number: '4111111111111111',
       verification_value: '318',
       month: '09',
       year: '2025',

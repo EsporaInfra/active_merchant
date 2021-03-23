@@ -19,8 +19,6 @@ module ActiveMerchant #:nodoc:
 
       self.money_format = :dollars
 
-      STANDARD_ERROR_CODE_MAPPING = {}
-
       def initialize(options = {})
         requires!(options, :id_comercio, :user, :apikey, :key_session)
         super
@@ -88,7 +86,8 @@ module ActiveMerchant #:nodoc:
           operation: 'Authorize',
           id_comercio: self.options[:id_comercio],
           user: self.options[:user],
-          apikey: self.options[:apikey]
+          apikey: self.options[:apikey],
+          testMode: self.options[:testMode]
         }
         add_invoice(post, money, options)
         # Payments contains the card information
@@ -97,7 +96,6 @@ module ActiveMerchant #:nodoc:
         post[:key_session] = self.options[:key_session]
 
         post_to_json = post.to_json
-        puts(post_to_json)
         post_to_json_encrypt = encrypt(post_to_json, self.options[:key_session])
 
         final_post = post_to_json_encrypt + '-' + self.options[:user]
@@ -110,13 +108,13 @@ module ActiveMerchant #:nodoc:
           id_comercio: self.options[:id_comercio],
           user: self.options[:user],
           apikey: self.options[:apikey],
+          testMode: self.options[:testMode],
           transaccion_id: options[:transaccion_id],
           amount: amount(money)
         }
         post[:key_session] = self.options[:key_session]
 
         post_to_json = post.to_json
-        puts(post_to_json)
         post_to_json_encrypt = encrypt(post_to_json, self.options[:key_session])
 
         final_post = post_to_json_encrypt + '-' + self.options[:user]
@@ -129,6 +127,7 @@ module ActiveMerchant #:nodoc:
           id_comercio: self.options[:id_comercio],
           user: self.options[:user],
           apikey: self.options[:apikey],
+          testMode: self.options[:testMode],
           transaccion_id: options[:transaccion_id],
           auth: authorization,
           amount: amount(money)
@@ -136,7 +135,6 @@ module ActiveMerchant #:nodoc:
         post[:key_session] = self.options[:key_session]
 
         post_to_json = post.to_json
-        puts(post_to_json)
         post_to_json_encrypt = encrypt(post_to_json, self.options[:key_session])
 
         final_post = post_to_json_encrypt + '-' + self.options[:user]
@@ -177,9 +175,8 @@ module ActiveMerchant #:nodoc:
       end
 
       def commit(action, parameters)
-        url = (test? ? test_url : live_url)
+        url = (self.options[:testMode] == 'YES' ? test_url : live_url)
         raw_response = ssl_post(url, parameters, { 'Content-type' => 'text/plain' })
-        puts(raw_response)
         response = JSON.parse(decrypt(raw_response, self.options[:key_session]))
 
         Response.new(
