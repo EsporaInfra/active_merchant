@@ -6,7 +6,6 @@ require 'base64'
 module ActiveMerchant #:nodoc:
   module Billing #:nodoc:
     class MitGateway < Gateway
-      self.test_url = 'https://wpy.mitec.com.mx/ModuloUtilWS/activeCDP.htm'
       self.live_url = 'https://wpy.mitec.com.mx/ModuloUtilWS/activeCDP.htm'
 
       self.supported_countries = ['MX']
@@ -31,10 +30,6 @@ module ActiveMerchant #:nodoc:
         capture(money, payment, options)
       end
 
-      def cipher
-        OpenSSL::Cipher::Cipher.new('aes-256-cbc') # ('aes-256-cbc')
-      end
-
       def cipher_key
         self.options[:key_session]
       end
@@ -47,7 +42,7 @@ module ActiveMerchant #:nodoc:
         # original message
         full_data = unpacked[0].bytes.slice(16, unpacked[0].bytes.length)
         # Creates the engine
-        engine = OpenSSL::Cipher::Cipher.new('AES-128-CBC')
+        engine = OpenSSL::Cipher::AES128.new(:CBC)
         # Set engine as decrypt mode
         engine.decrypt
         # Converts the key from hex to bytes
@@ -60,7 +55,7 @@ module ActiveMerchant #:nodoc:
 
       def encrypt(val, keyinhex)
         # Creates the engine motor
-        engine = OpenSSL::Cipher::Cipher.new('AES-128-CBC')
+        engine = OpenSSL::Cipher::AES128.new(:CBC)
         # Set engine as encrypt mode
         engine.encrypt
         # Converts the key from hex to bytes
@@ -87,7 +82,7 @@ module ActiveMerchant #:nodoc:
           id_comercio: self.options[:id_comercio],
           user: self.options[:user],
           apikey: self.options[:apikey],
-          testMode: self.options[:testMode]
+          testMode: self.options[:test_mode]
         }
         add_invoice(post, money, options)
         # Payments contains the card information
@@ -108,7 +103,7 @@ module ActiveMerchant #:nodoc:
           id_comercio: self.options[:id_comercio],
           user: self.options[:user],
           apikey: self.options[:apikey],
-          testMode: self.options[:testMode],
+          testMode: self.options[:test_mode],
           transaccion_id: options[:transaccion_id],
           amount: amount(money)
         }
@@ -127,7 +122,7 @@ module ActiveMerchant #:nodoc:
           id_comercio: self.options[:id_comercio],
           user: self.options[:user],
           apikey: self.options[:apikey],
-          testMode: self.options[:testMode],
+          testMode: self.options[:test_mode],
           transaccion_id: options[:transaccion_id],
           auth: authorization,
           amount: amount(money)
@@ -175,8 +170,7 @@ module ActiveMerchant #:nodoc:
       end
 
       def commit(action, parameters)
-        url = (self.options[:testMode] == 'YES' ? test_url : live_url)
-        raw_response = ssl_post(url, parameters, { 'Content-type' => 'text/plain' })
+        raw_response = ssl_post(live_url, parameters, { 'Content-type' => 'text/plain' })
         response = JSON.parse(decrypt(raw_response, self.options[:key_session]))
 
         Response.new(
