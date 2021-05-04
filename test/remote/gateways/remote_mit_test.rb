@@ -82,6 +82,13 @@ class RemoteMitTest < Test::Unit::TestCase
   end
 
   def test_failed_capture
+    # ###############################################################
+    # create unique id based on timestamp for testing purposes
+    # Each order / transaction passed to the gateway must be unique
+    time = Time.now.to_i.to_s
+    @options[:order_id] = 'TID|' + time
+    @options[:transaccion_id] = 'TID|' + time
+    # ###############################################################
     response = @gateway.capture(@amount_fail, 'requiredauth', @options)
     assert_failure response
     assert_not_equal 'approved', response.message
@@ -105,9 +112,25 @@ class RemoteMitTest < Test::Unit::TestCase
   end
 
   def test_failed_refund
-    # authorization is required
+    # ###############################################################
+    # create unique id based on timestamp for testing purposes
+    # Each order / transaction passed to the gateway must be unique
+    time = Time.now.to_i.to_s
+    @options[:order_id] = 'TID|' + time
+    @options[:transaccion_id] = 'TID|' + time
+    # ###############################################################
     response = @gateway.refund(@amount, 'invalidauth', @options)
     assert_failure response
     assert_not_equal 'approved', response.message
+  end
+
+  def test_transcript_scrubbing
+    transcript = capture_transcript(@gateway) do
+      @gateway.purchase(@amount, @credit_card, @options_success)
+    end
+
+    clean_transcript = @gateway.scrub(transcript)
+
+    assert_scrubbed("payload", clean_transcript)
   end
 end

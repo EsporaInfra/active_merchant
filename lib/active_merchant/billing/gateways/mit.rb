@@ -7,6 +7,7 @@ module ActiveMerchant #:nodoc:
   module Billing #:nodoc:
     class MitGateway < Gateway
       self.live_url = 'https://wpy.mitec.com.mx/ModuloUtilWS/activeCDP.htm'
+      #self.live_url = 'https://dev6.mitec.com.mx/ModuloUtilWS/activeCDP.htm'
 
       self.supported_countries = ['MX']
       self.default_currency = 'MXN'
@@ -94,7 +95,9 @@ module ActiveMerchant #:nodoc:
         post_to_json_encrypt = encrypt(post_to_json, self.options[:key_session])
 
         final_post = post_to_json_encrypt + '-' + self.options[:user]
-        commit('sale', final_post)
+        json_post = {}
+        json_post[:payload] = final_post
+        commit('sale', json_post)
       end
 
       def capture(money, authorization, options = {})
@@ -113,7 +116,9 @@ module ActiveMerchant #:nodoc:
         post_to_json_encrypt = encrypt(post_to_json, self.options[:key_session])
 
         final_post = post_to_json_encrypt + '-' + self.options[:user]
-        commit('capture', final_post)
+        json_post = {}
+        json_post[:payload] = final_post
+        commit('capture', json_post)
       end
 
       def refund(money, authorization, options = {})
@@ -133,7 +138,9 @@ module ActiveMerchant #:nodoc:
         post_to_json_encrypt = encrypt(post_to_json, self.options[:key_session])
 
         final_post = post_to_json_encrypt + '-' + self.options[:user]
-        commit('refund', final_post)
+        json_post = {}
+        json_post[:payload] = final_post
+        commit('refund', json_post)
       end
 
       def verify(credit_card, options = {})
@@ -144,7 +151,12 @@ module ActiveMerchant #:nodoc:
       end
 
       def supports_scrubbing?
-        false
+        true
+      end
+
+      def scrub(transcript)
+        transcript.
+          gsub(%r(("{)(.*)(})), '\1[FILTERED]\3')
       end
 
       private
@@ -170,7 +182,9 @@ module ActiveMerchant #:nodoc:
       end
 
       def commit(action, parameters)
-        raw_response = ssl_post(live_url, parameters, { 'Content-type' => 'text/plain' })
+        json_str = parameters.to_json
+        cleaned_str = json_str.gsub('\n','')
+        raw_response = ssl_post(live_url, cleaned_str, { 'Content-type' => 'application/json' })
         response = JSON.parse(decrypt(raw_response, self.options[:key_session]))
 
         Response.new(
