@@ -27,16 +27,17 @@ class RemoteMitTest < Test::Unit::TestCase
 
     @options_success = {
       order_id: '721',
-      transaccion_id: '721', # unique id for every transaction, needs to be generated for every test
+      transaction_id: '721', # unique id for every transaction, needs to be generated for every test
       billing_address: address,
       description: 'Store Purchase'
     }
 
     @options = {
       order_id: '721',
-      transaccion_id: '721', # unique id for every transaction, needs to be generated for every test
+      transaction_id: '721', # unique id for every transaction, needs to be generated for every test
       billing_address: address,
-      description: 'Store Purchase'
+      description: 'Store Purchase',
+      api_key: fixtures(:mit)[:apikey]
     }
   end
 
@@ -46,7 +47,7 @@ class RemoteMitTest < Test::Unit::TestCase
     # Each order / transaction passed to the gateway must be unique
     time = Time.now.to_i.to_s
     @options_success[:order_id] = 'TID|' + time
-    @options_success[:transaccion_id] = 'TID|' + time
+    @options_success[:transaction_id] = 'TID|' + time
     # ###############################################################
     response = @gateway.purchase(@amount, @credit_card, @options_success)
     assert_success response
@@ -65,7 +66,7 @@ class RemoteMitTest < Test::Unit::TestCase
     # Each order / transaction passed to the gateway must be unique
     time = Time.now.to_i.to_s
     @options_success[:order_id] = 'TID|' + time
-    @options_success[:transaccion_id] = 'TID|' + time
+    @options_success[:transaction_id] = 'TID|' + time
     # ###############################################################
     auth = @gateway.authorize(@amount, @credit_card, @options_success)
     assert_success auth
@@ -87,7 +88,7 @@ class RemoteMitTest < Test::Unit::TestCase
     # Each order / transaction passed to the gateway must be unique
     time = Time.now.to_i.to_s
     @options[:order_id] = 'TID|' + time
-    @options[:transaccion_id] = 'TID|' + time
+    @options[:transaction_id] = 'TID|' + time
     # ###############################################################
     response = @gateway.capture(@amount_fail, 'requiredauth', @options)
     assert_failure response
@@ -100,7 +101,7 @@ class RemoteMitTest < Test::Unit::TestCase
     # Each order / transaction passed to the gateway must be unique
     time = Time.now.to_i.to_s
     @options_success[:order_id] = 'TID|' + time
-    @options_success[:transaccion_id] = 'TID|' + time
+    @options_success[:transaction_id] = 'TID|' + time
     # ###############################################################
     purchase = @gateway.purchase(@amount, @credit_card, @options_success)
     assert_success purchase
@@ -117,7 +118,7 @@ class RemoteMitTest < Test::Unit::TestCase
     # Each order / transaction passed to the gateway must be unique
     time = Time.now.to_i.to_s
     @options[:order_id] = 'TID|' + time
-    @options[:transaccion_id] = 'TID|' + time
+    @options[:transaction_id] = 'TID|' + time
     # ###############################################################
     response = @gateway.refund(@amount, 'invalidauth', @options)
     assert_failure response
@@ -130,7 +131,6 @@ class RemoteMitTest < Test::Unit::TestCase
     end
 
     clean_transcript = @gateway.scrub(transcript)
-
     assert_scrubbed("payload", clean_transcript)
   end
 end

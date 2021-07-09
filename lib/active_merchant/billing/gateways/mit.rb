@@ -7,7 +7,6 @@ module ActiveMerchant #:nodoc:
   module Billing #:nodoc:
     class MitGateway < Gateway
       self.live_url = 'https://wpy.mitec.com.mx/ModuloUtilWS/activeCDP.htm'
-      #self.live_url = 'https://dev6.mitec.com.mx/ModuloUtilWS/activeCDP.htm'
 
       self.supported_countries = ['MX']
       self.default_currency = 'MXN'
@@ -20,7 +19,7 @@ module ActiveMerchant #:nodoc:
       self.money_format = :dollars
 
       def initialize(options = {})
-        requires!(options, :id_comercio, :user, :apikey, :key_session)
+        requires!(options, :commerce_id, :user, :api_key, :key_session, :test)
         super
       end
 
@@ -32,7 +31,7 @@ module ActiveMerchant #:nodoc:
       end
 
       def cipher_key
-        self.options[:key_session]
+        @options[:key_session]
       end
 
       def decrypt(val, keyinhex)
@@ -80,21 +79,21 @@ module ActiveMerchant #:nodoc:
       def authorize(money, payment, options = {})
         post = {
           operation: 'Authorize',
-          id_comercio: self.options[:id_comercio],
-          user: self.options[:user],
-          apikey: self.options[:apikey],
-          testMode: self.options[:test_mode]
+          commerce_id: @options[:commerce_id],
+          user: @options[:user],
+          apikey: @options[:api_key],
+          testMode: (test? ? 'YES' : 'NO')
         }
         add_invoice(post, money, options)
         # Payments contains the card information
         add_payment(post, payment)
         add_customer_data(post, options)
-        post[:key_session] = self.options[:key_session]
+        post[:key_session] = @options[:key_session]
 
         post_to_json = post.to_json
-        post_to_json_encrypt = encrypt(post_to_json, self.options[:key_session])
+        post_to_json_encrypt = encrypt(post_to_json, @options[:key_session])
 
-        final_post = post_to_json_encrypt + '-' + self.options[:user]
+        final_post = '<authorization>' + post_to_json_encrypt + '</authorization><dataID>' + @options[:user] + '</dataID>'
         json_post = {}
         json_post[:payload] = final_post
         commit('sale', json_post)
@@ -103,19 +102,19 @@ module ActiveMerchant #:nodoc:
       def capture(money, authorization, options = {})
         post = {
           operation: 'Capture',
-          id_comercio: self.options[:id_comercio],
-          user: self.options[:user],
-          apikey: self.options[:apikey],
-          testMode: self.options[:test_mode],
-          transaccion_id: options[:transaccion_id],
+          commerce_id: @options[:commerce_id],
+          user: @options[:user],
+          apikey: @options[:api_key],
+          testMode: (test? ? 'YES' : 'NO'),
+          transaction_id: options[:transaction_id],
           amount: amount(money)
         }
-        post[:key_session] = self.options[:key_session]
+        post[:key_session] = @options[:key_session]
 
         post_to_json = post.to_json
-        post_to_json_encrypt = encrypt(post_to_json, self.options[:key_session])
+        post_to_json_encrypt = encrypt(post_to_json, @options[:key_session])
 
-        final_post = post_to_json_encrypt + '-' + self.options[:user]
+        final_post = '<capture>' + post_to_json_encrypt + '</capture><dataID>' + @options[:user] + '</dataID>'
         json_post = {}
         json_post[:payload] = final_post
         commit('capture', json_post)
@@ -124,20 +123,20 @@ module ActiveMerchant #:nodoc:
       def refund(money, authorization, options = {})
         post = {
           operation: 'Refund',
-          id_comercio: self.options[:id_comercio],
-          user: self.options[:user],
-          apikey: self.options[:apikey],
-          testMode: self.options[:test_mode],
-          transaccion_id: options[:transaccion_id],
+          commerce_id: @options[:commerce_id],
+          user: @options[:user],
+          apikey: @options[:api_key],
+          testMode: (test? ? 'YES' : 'NO'),
+          transaction_id: options[:transaction_id],
           auth: authorization,
           amount: amount(money)
         }
-        post[:key_session] = self.options[:key_session]
+        post[:key_session] = @options[:key_session]
 
         post_to_json = post.to_json
-        post_to_json_encrypt = encrypt(post_to_json, self.options[:key_session])
+        post_to_json_encrypt = encrypt(post_to_json, @options[:key_session])
 
-        final_post = post_to_json_encrypt + '-' + self.options[:user]
+        final_post = '<refund>' + post_to_json_encrypt + '</refund><dataID>' + @options[:user] + '</dataID>'
         json_post = {}
         json_post[:payload] = final_post
         commit('refund', json_post)
@@ -155,8 +154,48 @@ module ActiveMerchant #:nodoc:
       end
 
       def scrub(transcript)
-        transcript.
-          gsub(%r(("{)(.*)(})), '\1[FILTERED]\3')
+        ret_transcript = transcript
+        auth_origin = ret_transcript[/<authorization>(.*?)<\/authorization>/,1]
+        if !auth_origin.nil? then
+          auth_decrypted = decrypt(auth_origin,@options[:key_session])
+          auth_json = JSON.parse(auth_decrypted)
+          auth_json['card'] = '[FILTERED]'
+          auth_json['expmonth'] = '[FILTERED]'
+          auth_json['expyear'] = '[FILTERED]'
+          auth_json['cvv'] = '[FILTERED]'
+          auth_json['name_client'] = '[FILTERED]'
+          auth_json['email'] = '[FILTERED]'
+          auth_json['apikey'] = '[FILTERED]'
+          auth_to_json = auth_json.to_json
+          auth_encrypted = encrypt(auth_to_json,@options[:key_session])
+          auth_tagged = '<authorization>' + auth_encrypted + '</authorization>'
+          ret_transcript = ret_transcript.gsub(/<authorization>(.*?)<\/authorization>/, auth_tagged)
+        end
+
+        cap_origin = ret_transcript[/<capture>(.*?)<\/capture>/,1]
+        if !cap_origin.nil? then
+          cap_decrypted = decrypt(cap_origin,@options[:key_session])
+          cap_json = JSON.parse(cap_decrypted)
+          cap_json['apikey'] = '[FILTERED]'
+          cap_to_json = cap_json.to_json
+          cap_encrypted = encrypt(cap_to_json,@options[:key_session])
+          cap_tagged = '<capture>' + cap_encrypted + '</capture>'
+          ret_transcript = ret_transcript.gsub(/<capture>(.*?)<\/capture>/, cap_tagged)          
+        end
+
+        ref_origin = ret_transcript[/<refund>(.*?)<\/refund>/,1]
+        if !ref_origin.nil? then
+          ref_decrypted = decrypt(ref_origin,@options[:key_session])
+          ref_json = JSON.parse(ref_decrypted)
+          ref_json['apikey'] = '[FILTERED]'
+          ref_to_json = ref_json.to_json
+          ref_encrypted = encrypt(ref_to_json,@options[:key_session])
+          ref_tagged = '<capture>' + ref_encrypted + '</capture>'
+          ret_transcript = ret_transcript.gsub(/<capture>(.*?)<\/capture>/, ref_tagged)          
+        end
+
+        ret_transcript.
+          gsub('payload', '\1[FILTERED]\3')
       end
 
       private
@@ -169,7 +208,7 @@ module ActiveMerchant #:nodoc:
         post[:amount] = amount(money)
         post[:currency] = (options[:currency] || currency(money))
         post[:reference] = options[:order_id]
-        post[:transaccion_id] = options[:order_id]
+        post[:transaction_id] = options[:order_id]
       end
 
       def add_payment(post, payment)
@@ -185,7 +224,7 @@ module ActiveMerchant #:nodoc:
         json_str = parameters.to_json
         cleaned_str = json_str.gsub('\n','')
         raw_response = ssl_post(live_url, cleaned_str, { 'Content-type' => 'application/json' })
-        response = JSON.parse(decrypt(raw_response, self.options[:key_session]))
+        response = JSON.parse(decrypt(raw_response, @options[:key_session]))
 
         Response.new(
           success_from(response),

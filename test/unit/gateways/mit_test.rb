@@ -3,9 +3,9 @@ require 'test_helper'
 class MitTest < Test::Unit::TestCase
   def setup
     @credentials = {
-      id_comercio: '147',
+      commerce_id: '147',
       user: 'IVCA33721',
-      apikey: 'IGECPJ0QOJJCEHUI',
+      api_key: 'IGECPJ0QOJJCEHUI',
       key_session: 'CB0DC4887DD1D5CEA205E66EE934E430'
     }
     @gateway = MitGateway.new(@credentials)
@@ -23,7 +23,7 @@ class MitTest < Test::Unit::TestCase
 
     @options = {
       order_id: '7111',
-      transaccion_id: '7111',
+      transaction_id: '7111',
       billing_address: address,
       description: 'Store Purchase'
     }
